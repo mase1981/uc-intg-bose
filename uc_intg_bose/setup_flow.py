@@ -1,6 +1,12 @@
-"""Setup flow: Bose account sign-in -> discover devices -> pick one."""
+"""Setup flow: Bose account sign-in -> discover devices -> pick one.
 
-import asyncio
+Setup deliberately does NOT open a connection to the speaker (that is done at
+runtime). Connecting to the speaker during setup risks blocking past the
+Remote's ~60s setup timeout, so we build the device config from the cloud
+sign-in + mDNS discovery only. The friendly name and battery capability are
+filled in at runtime on the first successful connect.
+"""
+
 import logging
 import re
 from typing import Any
@@ -22,7 +28,6 @@ class BoseSetupFlow(BaseSetupFlow[BoseConfig]):
         self._email = ""
         self._password = ""
         self._tokens: dict[str, str] = {}
-        self._auth = None
         self._devices: list[dict[str, str]] = []
 
     def get_manual_entry_form(self) -> RequestUserInput:
@@ -45,16 +50,19 @@ class BoseSetupFlow(BaseSetupFlow[BoseConfig]):
         if not email or not password:
             raise ValueError("Bose account email and password are required")
 
+        _LOG.info("Signing in to Bose account...")
         try:
-            self._auth, self._tokens = await bose_client.authenticate(email, password, {})
+            _, self._tokens = await bose_client.authenticate(email, password, {})
         except Exception as err:  # pylint: disable=broad-exception-caught
             _LOG.error("Bose sign-in failed: %s", err)
             raise ValueError("Bose sign-in failed. Check your email and password.") from err
 
         self._email = email
         self._password = password
+        _LOG.info("Bose sign-in OK. Discovering devices on the network...")
 
         self._devices = await bose_client.discover(timeout=5)
+        _LOG.info("Discovered %d Bose device(s)", len(self._devices))
         if not self._devices:
             raise ValueError(
                 "Signed in successfully, but no Bose devices were found on the network. "
@@ -62,12 +70,9 @@ class BoseSetupFlow(BaseSetupFlow[BoseConfig]):
             )
 
         if len(self._devices) == 1:
-            return await self._build_config(self._devices[0])
+            return self._build_config(self._devices[0])
 
-        items = []
-        for dev in self._devices:
-            name, _ = await self._probe(dev["IP"], dev["GUID"])
-            items.append({"id": dev["GUID"], "label": {"en": f"{name} ({dev['IP']})"}})
+        items = [{"id": d["GUID"], "label": {"en": f"Bose ({d['IP']})"}} for d in self._devices]
         return RequestUserInput(
             {"en": "Select Bose Device"},
             [{
@@ -82,19 +87,19 @@ class BoseSetupFlow(BaseSetupFlow[BoseConfig]):
         dev = next((d for d in self._devices if d["GUID"] == guid), None)
         if not dev:
             raise ValueError("Selected device not found")
-        self._pending_device_config = await self._build_config(dev)
+        self._pending_device_config = self._build_config(dev)
         return None
 
-    async def _build_config(self, dev: dict[str, str]) -> BoseConfig:
-        name, has_battery = await self._probe(dev["IP"], dev["GUID"])
+    def _build_config(self, dev: dict[str, str]) -> BoseConfig:
         guid = dev["GUID"]
+        ip = dev["IP"]
         identifier = f"bose_{re.sub(r'[^A-Za-z0-9]', '_', guid)}"
         return BoseConfig(
             identifier=identifier,
-            name=name,
-            host=dev["IP"],
+            name=f"Bose ({ip})",  # real name filled in at runtime on first connect
+            host=ip,
             guid=guid,
-            has_battery=has_battery,
+            has_battery=False,  # detected at runtime
             email=self._email,
             password=self._password,
             access_token=self._tokens.get("access_token", ""),
@@ -102,20 +107,3 @@ class BoseSetupFlow(BaseSetupFlow[BoseConfig]):
             azure_refresh_token=self._tokens.get("azure_refresh_token", ""),
             bose_person_id=self._tokens.get("bose_person_id", ""),
         )
-
-    async def _probe(self, ip: str, guid: str) -> tuple[str, bool]:
-        """Best-effort (friendly name, has_battery) via a short connect."""
-        speaker = bose_client.make_speaker(ip, guid, self._auth)
-        try:
-            await asyncio.wait_for(speaker.connect(), timeout=6)
-            info = await asyncio.wait_for(speaker.get_system_info(), timeout=6)
-            name = (info.get("name") or "").strip() or f"Bose ({ip})"
-            has_battery = bool(speaker.has_capability("/system/battery"))
-            return name, has_battery
-        except Exception:  # pylint: disable=broad-exception-caught
-            return f"Bose ({ip})", False
-        finally:
-            try:
-                await speaker.disconnect()
-            except Exception:  # pylint: disable=broad-exception-caught
-                pass

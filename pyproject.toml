@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "uc-intg-bose"
-version = "1.0.0"
+version = "1.0.1"
 description = "Bose (Bose Music line) integration for Unfolded Circle Remote Two/3"
 readme = "README.md"
 requires-python = ">=3.11"

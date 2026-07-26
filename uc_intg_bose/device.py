@@ -190,7 +190,10 @@ class BoseDevice(ExternalClientDevice):
         return bose_client.make_speaker(cfg.host, cfg.guid, auth)
 
     async def connect_client(self) -> None:
-        await self._client.connect()
+        # Hard timeouts: pybose's request loop has no internal timeout, so a
+        # speaker that accepts the WebSocket but never answers would otherwise
+        # hang forever. On timeout we raise so the watchdog retries cleanly.
+        await asyncio.wait_for(self._client.connect(), timeout=20)
 
         guid = self._client.get_device_id()
         if guid and guid != self._device_config.guid:
@@ -198,7 +201,7 @@ class BoseDevice(ExternalClientDevice):
 
         self._receiver_id = self._client.attach_receiver(self._on_message)
         await self._client.subscribe()
-        await self._seed_state()
+        await asyncio.wait_for(self._seed_state(), timeout=20)
         self._available = True
         self.push_update()
 
@@ -208,7 +211,7 @@ class BoseDevice(ExternalClientDevice):
                 if self._receiver_id is not None:
                     self._client.detach_receiver(self._receiver_id)
                     self._receiver_id = None
-                await self._client.disconnect()
+                await asyncio.wait_for(self._client.disconnect(), timeout=10)
             except Exception as err:  # pylint: disable=broad-exception-caught
                 _LOG.debug("[%s] disconnect_client: %s", self.log_id, err)
         self._available = False
@@ -223,12 +226,25 @@ class BoseDevice(ExternalClientDevice):
         self._volume = bose_client.parse_volume(await self._client.get_audio_volume())
         self._now_playing = bose_client.parse_now_playing(await self._client.get_now_playing())
         self._sources = bose_client.parse_sources(await self._client.get_sources())
+
         if self._client.has_capability("/system/battery"):
             try:
                 self._battery = await self._client.get_battery_status() or {}
                 self._has_battery = bool(self._battery)
             except Exception:  # pylint: disable=broad-exception-caught
                 self._has_battery = False
+
+        # Persist the real name + battery capability learned at runtime (setup
+        # uses an IP placeholder and cannot detect battery). Applies on the next
+        # restart: correct name shown, battery sensor created for portables.
+        updates: dict[str, Any] = {}
+        real_name = (self._system.get("name") or "").strip()
+        if real_name and self._device_config.name.startswith("Bose (") and real_name != self._device_config.name:
+            updates["name"] = real_name
+        if self._has_battery and not self._device_config.has_battery:
+            updates["has_battery"] = True
+        if updates:
+            self.update_config(**updates)
 
     def _on_message(self, message: Any) -> None:
         """Sync NOTIFY callback from pybose's receiver loop (runs on our loop)."""
