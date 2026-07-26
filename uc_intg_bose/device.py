@@ -1,8 +1,8 @@
-"""Bose (Bose Music line) device — wraps pybose.BoseSpeaker.
+"""Bose (Bose Music line) device - wraps pybose.BoseSpeaker.
 
 Self-healing auth: on every (re)connect we re-authenticate (cached token ->
 refresh -> full login) and re-resolve the device IP via mDNS, so the entities
-recover automatically whenever the Remote wakes and rejoins the network — even
+recover automatically whenever the Remote wakes and rejoins the network - even
 if the cached token expired while it was asleep. Rotated tokens are persisted
 immediately (update_config) so a reboot never loses the refresh chain.
 """
@@ -158,7 +158,7 @@ class BoseDevice(ExternalClientDevice):
             await super().disconnect()
 
     async def create_client(self) -> Any:
-        # Defensive teardown — the watchdog reconnect path bypasses connect().
+        # Defensive teardown - the watchdog reconnect path bypasses connect().
         await self.disconnect_client()
 
         cfg = self._device_config

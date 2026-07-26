@@ -1,7 +1,7 @@
 """Configuration dataclass and manager for the Bose integration.
 
 Credentials (email/password) are stored so the integration can silently
-re-authenticate on every connect — the Remote is offline by design and cannot
+re-authenticate on every connect - the Remote is offline by design and cannot
 rely on keeping a token refresh chain alive. This follows the same plaintext
 credential pattern used across the other account-based integrations (e.g. HEOS).
 Cached tokens are also stored to avoid a full cloud login on each reconnect.

@@ -1,6 +1,6 @@
 # Bose Integration for Unfolded Circle Remote 2/3
 
-Control your **Bose smart soundbars and speakers** (the **Bose Music app** line) directly from your Unfolded Circle Remote 2 or Remote 3. Power, volume, mute, transport, source switching, now-playing with album art, and battery level for portables — controlled **locally** after a one-time Bose account sign-in.
+Control your **Bose smart soundbars and speakers** (the **Bose Music app** line) directly from your Unfolded Circle Remote 2 or Remote 3. Power, volume, mute, transport, source switching, now-playing with album art, and battery level for portables - controlled **locally** after a one-time Bose account sign-in.
 
 > **Which integration do I need?** This is for the **modern Bose (Bose Music app)** devices. For older **SoundTouch** speakers (SoundTouch app), use the separate [SoundTouch integration](https://github.com/mase1981/uc-intg-soundtouch). The quick test: if you set the device up in the **Bose** app → this integration; if the **SoundTouch** app → the other one.
 
@@ -17,7 +17,7 @@ Control your **Bose smart soundbars and speakers** (the **Bose Music app** line)
 
 ## Supported Devices
 
-Bose Music-line devices, including: **Smart Ultra Soundbar**, **Soundbar 500 / 700 / 900**, **Home Speaker 300 / 500**, **Music Amplifier**, and **Portable Speaker**. (Older SoundTouch models are **not** supported here — see the note above.)
+Bose Music-line devices, including: **Smart Ultra Soundbar**, **Soundbar 500 / 700 / 900**, **Home Speaker 300 / 500**, **Music Amplifier**, and **Portable Speaker**. (Older SoundTouch models are **not** supported here - see the note above.)
 
 ## Features
 
@@ -45,7 +45,7 @@ Your support helps maintain this integration. Thank you! ❤️
 
 Bose requires a one-time cloud sign-in to enable local control. During setup you enter your **Bose account email and password** (the same you use in the Bose app). After that:
 
-- **All control is local** over the speaker's own network connection — the cloud is not in the loop for day-to-day use.
+- **All control is local** over the speaker's own network connection - the cloud is not in the loop for day-to-day use.
 - The integration **re-authenticates automatically whenever it reconnects** (e.g. when the Remote wakes from standby), so your speakers recover on their own with **no periodic re-setup**.
 - Your credentials are stored on the Remote so this recovery works across reboots and long offline periods. You only need to run setup again if you **change your Bose account password**.
 
@@ -113,7 +113,7 @@ For each device the integration creates:
 |---------|-----|
 | "Bose sign-in failed" | Double-check your Bose account email and password (the same used in the Bose app). |
 | "No Bose devices were found" | Ensure the device is powered on and on the same network/subnet as the Remote. |
-| Device unavailable after a password change | Changing your Bose password revokes the stored login — re-run setup to sign in again. |
+| Device unavailable after a password change | Changing your Bose password revokes the stored login - re-run setup to sign in again. |
 | Device unavailable after a router reboot | The IP is re-resolved automatically on reconnect; give it a moment, or power-cycle the speaker. |
 | Source switch does nothing | Only the sources the device actually exposes are selectable; some streaming sources are controlled from within their app. |
 
