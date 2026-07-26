@@ -1,0 +1,11 @@
+ucapi>=0.7.0
+ucapi-framework>=1.9.5
+aiohttp>=3.9.0
+pybose==2025.12.4
+websockets>=14.0
+zeroconf>=0.141.0
+requests>=2.32.0
+PyJWT>=2.10.0
+cryptography>=44.0.0
+certifi
+async-timeout>=5.0.0

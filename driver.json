@@ -1,0 +1,39 @@
+{
+  "driver_id": "uc_intg_bose",
+  "version": "1.0.0",
+  "min_core_api": "0.22.0",
+  "name": {
+    "en": "Bose"
+  },
+  "icon": "uc:speaker",
+  "description": {
+    "en": "Control Bose smart soundbars and speakers (Bose Music app line: Smart Ultra Soundbar, Soundbar 500/700/900, Home Speaker 300/500, Music Amplifier, Portable Speaker). Power, volume, mute, transport, source selection, presets, now-playing with album art, and battery for portables. Real-time local control after a one-time Bose account sign-in. For older SoundTouch speakers use the SoundTouch integration."
+  },
+  "developer": {
+    "name": "Meir Miyara",
+    "email": "meir.miyara@gmail.com",
+    "url": "https://github.com/mase1981"
+  },
+  "home_page": "https://github.com/mase1981/uc-intg-bose",
+  "release_date": "2026-07-26",
+  "setup_data_schema": {
+    "title": {
+      "en": "Bose Setup"
+    },
+    "settings": [
+      {
+        "id": "info",
+        "label": {
+          "en": "Sign in to your Bose account"
+        },
+        "field": {
+          "label": {
+            "value": {
+              "en": "On the next screen, sign in with your Bose account (the same email and password you use in the Bose app). Your speakers are discovered automatically on the network. Control is local after sign-in; your credentials are stored on the Remote to keep the connection alive across reboots."
+            }
+          }
+        }
+      }
+    ]
+  }
+}
